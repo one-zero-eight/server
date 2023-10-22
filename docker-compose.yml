@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.47.2
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - "prometheus_data:/prometheus"
+      - "./prometheus:/etc/prometheus"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana:10.1.5
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - "grafana_data:/var/lib/grafana"
+
+  node_exporter:
+    image: prom/node-exporter:v1.6.1
+    container_name: node_exporter
+    restart: always
+    network_mode: host
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/host/rootfs:ro"
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/host/rootfs"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+
+volumes:
+  prometheus_data:
+  grafana_data:
