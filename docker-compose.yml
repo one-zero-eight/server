@@ -18,7 +18,7 @@ services:
     container_name: grafana
     restart: always
     ports:
-      - "3000:3000"
+      - "3100:3000"
     volumes:
       - "grafana_data:/var/lib/grafana"
 
@@ -36,6 +36,18 @@ services:
       - "--path.sysfs=/host/sys"
       - "--path.rootfs=/host/rootfs"
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: cadvisor
+    restart: always
+    ports:
+    - "8080:8080"
+    volumes:
+    - "/:/rootfs:ro"
+    - "/var/run:/var/run:rw"
+    - "/sys:/sys:ro"
+    - "/var/lib/docker/:/var/lib/docker:ro"
 
 volumes:
   prometheus_data:
