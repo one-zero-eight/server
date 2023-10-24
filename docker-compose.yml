@@ -26,7 +26,6 @@ services:
     image: prom/node-exporter:v1.6.1
     container_name: node_exporter
     restart: always
-    network_mode: host
     volumes:
       - "/proc:/host/proc:ro"
       - "/sys:/host/sys:ro"
