@@ -50,6 +50,8 @@ services:
 
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter:0.11.0
+    container_name: nginx_exporter
+    restart: always
     command:
       - "-nginx.scrape-uri"
       - "http://host.docker.internal:8081/metrics"
