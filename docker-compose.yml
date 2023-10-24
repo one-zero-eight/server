@@ -48,6 +48,14 @@ services:
     - "/sys:/sys:ro"
     - "/var/lib/docker/:/var/lib/docker:ro"
 
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:0.11.0
+    command:
+      - "-nginx.scrape-uri"
+      - "http://host.docker.internal:8081/metrics"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   prometheus_data:
   grafana_data:
