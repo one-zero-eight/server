@@ -1,0 +1,27 @@
+# This is a Docker Compose file for server with monitoring tools.
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - "prometheus_data:/prometheus"
+      - "./prometheus:/etc/prometheus"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    restart: always
+    ports:
+      - "3100:3000"
+    volumes:
+      - "grafana_data:/var/lib/grafana"
+
+volumes:
+  prometheus_data:
+  grafana_data:

@@ -1,29 +1,8 @@
-version: "3"
+# This is a Docker Compose file for servers that need to be monitored.
 
 services:
-  prometheus:
-    image: prom/prometheus:v2.47.2
-    container_name: prometheus
-    restart: always
-    ports:
-      - "9090:9090"
-    volumes:
-      - "prometheus_data:/prometheus"
-      - "./prometheus:/etc/prometheus"
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-
-  grafana:
-    image: grafana/grafana:10.1.5
-    container_name: grafana
-    restart: always
-    ports:
-      - "3100:3000"
-    volumes:
-      - "grafana_data:/var/lib/grafana"
-
   node_exporter:
-    image: prom/node-exporter:v1.6.1
+    image: prom/node-exporter:v1.8.0
     container_name: node_exporter
     restart: always
     volumes:
@@ -37,7 +16,7 @@ services:
       - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: cadvisor
     restart: always
     ports:
@@ -49,15 +28,10 @@ services:
     - "/var/lib/docker/:/var/lib/docker:ro"
 
   nginx_exporter:
-    image: nginx/nginx-prometheus-exporter:0.11.0
+    image: nginx/nginx-prometheus-exporter:1.1.0
     container_name: nginx_exporter
     restart: always
     command:
-      - "-nginx.scrape-uri"
-      - "http://host.docker.internal:8081/metrics"
+      - "--nginx.scrape-uri=http://host.docker.internal:8081/metrics"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-volumes:
-  prometheus_data:
-  grafana_data:
