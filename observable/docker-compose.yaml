@@ -6,7 +6,7 @@ services:
     container_name: node_exporter
     restart: always
     ports:
-    - "9100:9100"
+      - "9100:9100"
     volumes:
       - "/proc:/host/proc:ro"
       - "/sys:/host/sys:ro"
@@ -22,19 +22,24 @@ services:
     container_name: cadvisor
     restart: always
     ports:
-    - "8080:8080"
+      - "8080:8080"
     volumes:
-    - "/:/rootfs:ro"
-    - "/var/run:/var/run:rw"
-    - "/sys:/sys:ro"
-    - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:rw"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+    command:
+      - '-housekeeping_interval=30s'
+      - '-docker_only=true'
+      - '-disable_metrics=disk'
+      - '-allow_dynamic_housekeeping=false'
 
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter:1.1.0
     container_name: nginx_exporter
     restart: always
     ports:
-    - "9113:9113"
+      - "9113:9113"
     command:
       - "--nginx.scrape-uri=http://host.docker.internal:8081/metrics"
     extra_hosts:
