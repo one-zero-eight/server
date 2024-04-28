@@ -9,9 +9,10 @@ services:
       - "9090:9090"
     volumes:
       - "prometheus_data:/prometheus"
-      - "./prometheus:/etc/prometheus"
+      - "./prometheus:/etc/prometheus:ro"
+      - "/etc/hosts:/etc/hosts:ro"
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--config.file=/etc/prometheus/prometheus.yaml"
 
   grafana:
     image: grafana/grafana:10.4.2
@@ -21,6 +22,9 @@ services:
       - "3100:3000"
     volumes:
       - "grafana_data:/var/lib/grafana"
+    environment:
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:3100/grafana}
 
 volumes:
   prometheus_data:

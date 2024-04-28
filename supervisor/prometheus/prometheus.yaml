@@ -10,20 +10,20 @@ scrape_configs:
     static_configs:
       - targets: [ 'localhost:9090' ]
 
-  # Host machine
+  # General host metrics
   - job_name: 'node_exporter'
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'node_exporter:9100' ]
+      - targets: [ 'vm20:9100', 'vm21:9100', 'vm23:9100' ]
 
   # Docker containers
   - job_name: 'cadvisor'
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'cadvisor:8080' ]
+      - targets: [ 'vm20:8080', 'vm21:8080', 'vm23:8080' ]
 
   # Nginx server
   - job_name: 'nginx_exporter'
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'nginx_exporter:9113' ]
+      - targets: [ 'vm21:9113' ]
