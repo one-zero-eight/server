@@ -39,7 +39,8 @@ services:
     image: grafana/promtail:3.0.0
     restart: always
     volumes:
-      - "/var/log:/var/log"
+      - "/var/log:/var/log:ro"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
       - "./promtail:/etc/promtail"
       - "/etc/hosts:/etc/hosts:ro"
     command: -config.file=/etc/promtail/promtail-config.yaml
