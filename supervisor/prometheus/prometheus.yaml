@@ -27,3 +27,9 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
       - targets: [ 'vm21:9113' ]
+
+  # Loki
+  - job_name: 'loki'
+    scrape_interval: 5s
+    static_configs:
+      - targets: [ 'vm23:3100' ]
