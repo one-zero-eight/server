@@ -19,12 +19,30 @@ services:
     container_name: grafana
     restart: always
     ports:
-      - "3100:3000"
+      - "3000:3000"
     volumes:
       - "grafana_data:/var/lib/grafana"
     environment:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
-      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:3100/grafana}
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:3000/grafana}
+
+  loki:
+    image: grafana/loki:3.0.0
+    restart: always
+    ports:
+      - "3100:3100"
+    volumes:
+      - "./loki:/etc/loki"
+    command: -config.file=/etc/loki/loki-config.yaml
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    restart: always
+    volumes:
+      - "/var/log:/var/log"
+      - "./promtail:/etc/promtail"
+      - "/etc/hosts:/etc/hosts:ro"
+    command: -config.file=/etc/promtail/promtail-config.yaml
 
 volumes:
   prometheus_data:
