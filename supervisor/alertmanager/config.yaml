@@ -1,0 +1,13 @@
+route:
+  group_by: [ 'alertname', 'cluster', 'service' ]
+  group_wait: 1s
+  group_interval: 1s
+  repeat_interval: 4h
+  receiver: 'telegram'
+
+receivers:
+  - name: 'telegram'
+    telegram_configs:
+      - api_url: 'https://api.telegram.org'
+        chat_id: '1234567890'
+        bot_token: '1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ'

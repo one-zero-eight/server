@@ -35,6 +35,18 @@ services:
       - "./loki:/etc/loki"
     command: -config.file=/etc/loki/loki-config.yaml
 
+  alertmanager:
+    image: "prom/alertmanager:v0.27.0"
+    container_name: alertmanager
+    restart: always
+    volumes:
+      - "./alertmanager/:/etc/alertmanager/"
+    ports:
+      - "9093:9093"
+    command:
+      - "--config.file=/etc/alertmanager/config.private.yaml"
+      - "--storage.path=/alertmanager"
+
 volumes:
   prometheus_data:
   grafana_data:
