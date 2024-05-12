@@ -1,31 +1,31 @@
 {{ define "telegram.default.message" }}
-    {{ if gt (len .Alerts.Firing) 0 }}
-        Alerts Firing 🔥
+{{ if gt (len .Alerts.Firing) 0 -}}
+<b>Alerts Firing 🔥</b>
+{{- range .Alerts.Firing}}
+    Labels 🏷
+    {{- range .Labels.SortedPairs }}
+     <i>{{ .Name }}</i>: {{ .Value }}
+    {{- end }}
+    Annotations 📝
+    {{- range .Annotations.SortedPairs }}
+     <i>{{ .Name }}</i>: {{ .Value }}
+    {{- end }}
+{{ end }}
+{{ end }}
 
-        {{ range .Alerts.Firing }}
-            Labels:
-            {{ range .Labels.SortedPairs }}
-                - {{ .Name }} = {{ .Value }}
-            {{ end }}
-            Annotations:
-            {{ range .Annotations.SortedPairs }}
-                - {{ .Name }} = {{ .Value }}
-            {{ end }}
-        {{ end }}
-    {{ end }}
+{{ if gt (len .Alerts.Resolved) 0 -}}
+<b>Alerts Resolved ✅</b>
+{{- range .Alerts.Resolved}}
+    Labels 🏷
+    {{- range .Labels.SortedPairs }}
+     <i>{{ .Name }}</i>: {{ .Value }}
+    {{- end }}
+    Annotations 📝
+    {{- range .Annotations.SortedPairs }}
+     <i>{{ .Name }}</i>: {{ .Value }}
+    {{- end }}
+{{ end }}
+{{ end }}
 
-    {{ if gt (len .Alerts.Resolved) 0 }}
-        Alerts Resolved 🎉
-
-        {{ range .Alerts.Resolved }}
-            Labels:
-            {{ range .Labels.SortedPairs }}
-                - {{ .Name }} = {{ .Value }}
-            {{ end }}
-            Annotations:
-            {{ range .Annotations.SortedPairs }}
-                - {{ .Name }} = {{ .Value }}
-            {{ end }}
-        {{ end }}
-    {{ end }}
+See more at <a href="https://dev.innohassle.ru/grafana/alerting/groups?alertmanager=alertmanager">Grafana</a>
 {{ end }}
