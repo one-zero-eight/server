@@ -10,4 +10,4 @@ receivers:
     telegram_configs:
       - api_url: 'https://api.telegram.org'
         chat_id: '1234567890'
-        bot_token: '1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        bot_token_file: '_secrets/bot_token.txt'
