@@ -10,7 +10,7 @@ receivers:
     telegram_configs:
       - api_url: 'https://api.telegram.org'
         chat_id: -1001847065832
-        bot_token_file: '_secrets/bot_token.txt'
+        bot_token_file: '/etc/alertmanager/_secrets/bot_token.txt'
 
 templates:
-  - './*.tmpl'
+  - '/etc/alertmanager/*.tmpl'
