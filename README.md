@@ -23,6 +23,31 @@ so we don't need to worry about SSL certificates.
 
 ### Monitoring
 
+```mermaid
+graph LR
+    vm21o["Production server"]
+    vm20o["Staging server"]
+    vm23o["Internal server"]
+
+    prometheus[(Prometheus)]
+    loki[(Loki)]
+    alertmanager{Alert Manager}
+    grafana[Grafana]
+
+    vm21o & vm20o & vm23o ----> |"metrics\n(via exporters)"| prometheus
+
+    vm21o & vm20o & vm23o ----> |"logs\n(via promtail)"| loki
+
+    prometheus --> |alerts| alertmanager
+    loki --> |alerts| alertmanager
+
+    prometheus --> grafana
+    alertmanager --> grafana
+    loki --> grafana
+
+    user([User]) ------> |web browser| grafana
+```
+
 All servers are monitored:
 
 - vm23 is Supervisor server ([configurations](./supervisor)).
