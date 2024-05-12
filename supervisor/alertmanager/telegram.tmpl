@@ -10,8 +10,8 @@
     {{- range .Annotations.SortedPairs }}
       <i>{{ .Name }}</i>: {{ .Value }}
     {{- end }}
-{{ end }}
-{{ end }}
+{{ end -}}
+{{ end -}}
 
 {{ if gt (len .Alerts.Resolved) 0 -}}
 <b>Alerts Resolved ✅</b>
@@ -24,9 +24,8 @@
     {{- range .Annotations.SortedPairs }}
       <i>{{ .Name }}</i>: {{ .Value }}
     {{- end }}
-{{ end }}
-{{ end }}
+{{ end -}}
+{{ end -}}
 
-{{-
-See more at <a href="https://dev.innohassle.ru/grafana/alerting/groups?alertmanager=alertmanager">Grafana</a>}}
+See more at <a href="https://dev.innohassle.ru/grafana/alerting/groups?alertmanager=alertmanager">Grafana</a>
 {{ end }}
