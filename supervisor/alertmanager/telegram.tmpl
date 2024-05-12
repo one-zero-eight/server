@@ -4,11 +4,11 @@
 {{- range .Alerts.Firing}}
     Labels 🏷
     {{- range .Labels.SortedPairs }}
-     <i>{{ .Name }}</i>: {{ .Value }}
+      <i>{{ .Name }}</i>: {{ .Value }}
     {{- end }}
     Annotations 📝
     {{- range .Annotations.SortedPairs }}
-     <i>{{ .Name }}</i>: {{ .Value }}
+      <i>{{ .Name }}</i>: {{ .Value }}
     {{- end }}
 {{ end }}
 {{ end }}
@@ -18,14 +18,15 @@
 {{- range .Alerts.Resolved}}
     Labels 🏷
     {{- range .Labels.SortedPairs }}
-     <i>{{ .Name }}</i>: {{ .Value }}
+      <i>{{ .Name }}</i>: {{ .Value }}
     {{- end }}
     Annotations 📝
     {{- range .Annotations.SortedPairs }}
-     <i>{{ .Name }}</i>: {{ .Value }}
+      <i>{{ .Name }}</i>: {{ .Value }}
     {{- end }}
 {{ end }}
 {{ end }}
 
-See more at <a href="https://dev.innohassle.ru/grafana/alerting/groups?alertmanager=alertmanager">Grafana</a>
+{{-
+See more at <a href="https://dev.innohassle.ru/grafana/alerting/groups?alertmanager=alertmanager">Grafana</a>}}
 {{ end }}
