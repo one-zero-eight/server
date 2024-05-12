@@ -1,0 +1,84 @@
+name: Deploy to servers
+
+concurrency:
+  group: server
+  cancel-in-progress: false
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-supervisor:
+    name: Deploy to Supervisor server
+    runs-on: self-hosted
+    environment:
+      name: supervisor
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          script_stop: true # Stop script on error
+          script: |
+            cd ${{ secrets.REPOSITORY_ROOT }}
+            git reset --hard
+            git checkout ${{ github.ref_name }}
+            git pull
+            cd supervisor
+            docker compose build --pull
+            docker compose pull
+            docker compose up -d
+
+  deploy-staging:
+    name: Deploy to Staging server (observable)
+    runs-on: self-hosted
+    environment:
+      name: staging
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          script_stop: true # Stop script on error
+          script: |
+            cd ${{ secrets.REPOSITORY_ROOT }}
+            git reset --hard
+            git checkout ${{ github.ref_name }}
+            git pull
+            cd observable
+            docker compose build --pull
+            docker compose pull
+            docker compose up -d
+
+  deploy-production:
+    name: Deploy to Production server (observable)
+    runs-on: self-hosted
+    environment:
+      name: production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          script_stop: true # Stop script on error
+          script: |
+            cd ${{ secrets.REPOSITORY_ROOT }}
+            git reset --hard
+            git checkout ${{ github.ref_name }}
+            git pull
+            cd observable
+            docker compose build --pull
+            docker compose pull
+            docker compose up -d
