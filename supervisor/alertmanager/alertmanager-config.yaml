@@ -13,4 +13,4 @@ receivers:
         bot_token_file: '_secrets/bot_token.txt'
 
 templates:
-  - `./*.tmpl`
+  - './*.tmpl'
