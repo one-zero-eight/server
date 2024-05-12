@@ -44,7 +44,7 @@ services:
     ports:
       - "9093:9093"
     command:
-      - "--config.file=/etc/alertmanager/config.private.yaml"
+      - "--config.file=/etc/alertmanager/alertmanager-config.yaml"
       - "--storage.path=/alertmanager"
 
 volumes:
