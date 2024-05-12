@@ -9,5 +9,5 @@ receivers:
   - name: 'telegram'
     telegram_configs:
       - api_url: 'https://api.telegram.org'
-        chat_id: '1234567890'
+        chat_id: -1001847065832
         bot_token_file: '_secrets/bot_token.txt'
