@@ -7,4 +7,4 @@ groups:
         labels:
           severity: critical
         annotations:
-          description: '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute.'
+          description: '{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute!'
