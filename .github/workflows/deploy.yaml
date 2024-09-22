@@ -25,6 +25,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           fingerprint: ${{ secrets.SSH_FINGERPRINT }}
           script_stop: true # Stop script on error
+          command_timeout: 30m
           script: |
             cd ${{ secrets.REPOSITORY_ROOT }}
             git reset --hard
@@ -49,6 +50,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           fingerprint: ${{ secrets.SSH_FINGERPRINT }}
           script_stop: true # Stop script on error
+          command_timeout: 30m
           script: |
             cd ${{ secrets.REPOSITORY_ROOT }}
             git reset --hard
@@ -73,6 +75,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           fingerprint: ${{ secrets.SSH_FINGERPRINT }}
           script_stop: true # Stop script on error
+          command_timeout: 30m
           script: |
             cd ${{ secrets.REPOSITORY_ROOT }}
             git reset --hard
