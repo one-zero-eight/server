@@ -63,7 +63,7 @@ To set up everything in this repository, you need to clone it to each server.
 
 Then on one Supervisor server you need to configure secrets:
 ```bash
-cp supervisor/.env.example supervisor/.env
+cp supervisor/.example.env supervisor/.env
 cp supervisor/alertmanager/_secrets/bot_token.example.txt supervisor/alertmanager/_secrets/bot_token.txt
 ```
 
