@@ -1,0 +1,50 @@
+$schema: https://json-schema.org/draft-07/schema
+$defs:
+  DeployEnvironmentConfig:
+    additionalProperties: false
+    properties:
+      host:
+        anyOf:
+        - type: string
+        - type: 'null'
+        default: null
+        title: Host
+      docker_deploy_dir:
+        anyOf:
+        - format: path
+          type: string
+        - type: 'null'
+        default: null
+        title: Docker Deploy Dir
+      static_dir:
+        anyOf:
+        - format: path
+          type: string
+        - type: 'null'
+        default: null
+        title: Static Dir
+    title: DeployEnvironmentConfig
+    type: object
+additionalProperties: false
+properties:
+  $schema:
+    anyOf:
+    - type: string
+    - type: 'null'
+    default: null
+    title: $Schema
+  webhook_secret:
+    title: Webhook Secret
+    type: string
+  repositories:
+    additionalProperties:
+      additionalProperties:
+        $ref: '#/$defs/DeployEnvironmentConfig'
+      type: object
+    title: Repositories
+    type: object
+required:
+- webhook_secret
+- repositories
+title: Settings
+type: object
