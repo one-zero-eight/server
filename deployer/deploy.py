@@ -14,13 +14,14 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from config import settings
-from config_schema import DeployEnvironmentConfig
+from config_schema import RepositoryConfig
 
 
 app = FastAPI()
 logger = logging.getLogger(__name__)
 DEPLOY_LOCK = threading.Lock()
 IMAGE_ID_PATTERN = re.compile(r"^sha256:[0-9a-fA-F]+$")
+SERVICE_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.-]*$")
 auth_scheme = HTTPBearer(auto_error=False)
 
 
@@ -38,6 +39,19 @@ def _validate_image_id(image_id: str) -> None:
         raise HTTPException(status_code=400, detail="Invalid image_id format, expected sha256:<hex>.")
 
 
+def _validate_services(services: list[str]) -> None:
+    for service in services:
+        if not SERVICE_NAME_PATTERN.fullmatch(service):
+            raise HTTPException(status_code=400, detail=f"Invalid service name: {service}")
+
+
+def _build_deploy_command(deploy_script: Path, image_id: str, services: list[str]) -> list[str]:
+    command = [str(deploy_script), "--image-id", image_id]
+    for service in services:
+        command.extend(["--service", service])
+    return command
+
+
 def _sanitize_ref(ref: str) -> str:
     return "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in ref).strip("._-") or "ref"
 
@@ -47,25 +61,28 @@ def _is_member_path_safe(member_name: str) -> bool:
     return not member_path.is_absolute() and ".." not in member_path.parts
 
 
-def _get_repository_environment_config(repository: str, environment: str) -> DeployEnvironmentConfig:
+def _get_repository_config(repository: str) -> RepositoryConfig:
     repository_config = settings.repositories.get(repository)
     if not repository_config:
         raise HTTPException(status_code=404, detail=f"Repository config not found: {repository}")
 
-    environment_config = repository_config.get(environment)
-    if not environment_config:
-        raise HTTPException(status_code=404, detail=f"Environment config not found: {repository}/{environment}")
-
-    return environment_config
+    return repository_config
 
 
-def deploy_stream(service_dir: Path, image_id: str, ref: str) -> Iterator[str]:
+def deploy_stream(deploy_script: Path, image_id: str, ref: str, services: list[str]) -> Iterator[str]:
+    work_dir = deploy_script.parent
     with DEPLOY_LOCK:
-        logger.info("Deploy start: dir=%s ref=%s image_id=%s", service_dir, ref, image_id)
+        logger.info(
+            "Deploy start: script=%s ref=%s image_id=%s services=%s",
+            deploy_script,
+            ref,
+            image_id,
+            services,
+        )
         try:
             process = subprocess.Popen(
-                ["./deploy.sh", image_id],
-                cwd=service_dir,
+                _build_deploy_command(deploy_script, image_id, services),
+                cwd=work_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -81,7 +98,13 @@ def deploy_stream(service_dir: Path, image_id: str, ref: str) -> Iterator[str]:
             else:
                 yield "\nDeployment completed successfully\n"
         finally:
-            logger.info("Deploy finish: dir=%s ref=%s image_id=%s", service_dir, ref, image_id)
+            logger.info(
+                "Deploy finish: script=%s ref=%s image_id=%s services=%s",
+                deploy_script,
+                ref,
+                image_id,
+                services,
+            )
 
 
 def deploy_static_stream(
@@ -151,28 +174,34 @@ def _extract_archive_safely(archive: UploadFile, destination: Path) -> None:
 
 @app.post("/deploy")
 def deploy(
-    environment: str = Query(...),
     repository: str = Query(...),
     image_id: str = Body(...),
     ref: str = Body(...),
+    services: list[str] = Body(default=[]),
     _: None = Depends(validate_webhook_secret),
 ) -> StreamingResponse:
     _validate_image_id(image_id)
-    logger.info("Deploy request: repository=%s environment=%s ref=%s", repository, environment, ref)
+    _validate_services(services)
+    logger.info(
+        "Deploy request: repository=%s ref=%s services=%s",
+        repository,
+        ref,
+        services,
+    )
 
-    environment_config = _get_repository_environment_config(repository, environment)
-    if environment_config.docker_deploy_dir is None:
+    repository_config = _get_repository_config(repository)
+    if repository_config.deploy_script is None:
         raise HTTPException(
             status_code=400,
-            detail=f"docker_deploy_dir is not configured for {repository}/{environment}",
+            detail=f"deploy_script is not configured for {repository}",
         )
 
-    service_dir = Path(environment_config.docker_deploy_dir)
-    if not service_dir.is_dir():
-        raise HTTPException(status_code=404, detail=f"Service directory not found: {service_dir}")
+    deploy_script = Path(repository_config.deploy_script)
+    if not deploy_script.is_file():
+        raise HTTPException(status_code=404, detail=f"Deploy script not found: {deploy_script}")
 
     return StreamingResponse(
-        deploy_stream(service_dir, image_id, ref),
+        deploy_stream(deploy_script, image_id, ref, services),
         media_type="text/plain; charset=utf-8",
         headers={
             "Cache-Control": "no-cache",
@@ -183,22 +212,21 @@ def deploy(
 
 @app.post("/deploy-static")
 def deploy_static(
-    environment: str = Query(...),
     repository: str = Query(...),
     ref: str = Form(...),
     archive: UploadFile = File(...),
     _: None = Depends(validate_webhook_secret),
 ) -> StreamingResponse:
-    logger.info("Deploy static request: repository=%s environment=%s ref=%s", repository, environment, ref)
+    logger.info("Deploy static request: repository=%s ref=%s", repository, ref)
 
-    environment_config = _get_repository_environment_config(repository, environment)
-    if environment_config.static_dir is None:
+    repository_config = _get_repository_config(repository)
+    if repository_config.static_dir is None:
         raise HTTPException(
             status_code=400,
-            detail=f"static_dir is not configured for {repository}/{environment}",
+            detail=f"static_dir is not configured for {repository}",
         )
 
-    target_symlink = Path(environment_config.static_dir)
+    target_symlink = Path(repository_config.static_dir)
     base_parent = target_symlink.parent
     base_parent.mkdir(parents=True, exist_ok=True)
     safe_ref = _sanitize_ref(ref)

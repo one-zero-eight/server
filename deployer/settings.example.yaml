@@ -1,0 +1,10 @@
+$schema: ./settings.schema.yaml
+
+webhook_secret: change-me
+
+repositories:
+  one-zero-eight/monorepo:
+    deploy_script: /srv/innohassle/monorepo/deploy.sh
+
+  one-zero-eight/website:
+    static_dir: /var/www/website

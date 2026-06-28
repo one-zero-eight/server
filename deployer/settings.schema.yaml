@@ -1,21 +1,15 @@
 $schema: https://json-schema.org/draft-07/schema
 $defs:
-  DeployEnvironmentConfig:
+  RepositoryConfig:
     additionalProperties: false
     properties:
-      host:
-        anyOf:
-        - type: string
-        - type: 'null'
-        default: null
-        title: Host
-      docker_deploy_dir:
+      deploy_script:
         anyOf:
         - format: path
           type: string
         - type: 'null'
         default: null
-        title: Docker Deploy Dir
+        title: Deploy Script
       static_dir:
         anyOf:
         - format: path
@@ -23,7 +17,7 @@ $defs:
         - type: 'null'
         default: null
         title: Static Dir
-    title: DeployEnvironmentConfig
+    title: RepositoryConfig
     type: object
 additionalProperties: false
 properties:
@@ -38,9 +32,7 @@ properties:
     type: string
   repositories:
     additionalProperties:
-      additionalProperties:
-        $ref: '#/$defs/DeployEnvironmentConfig'
-      type: object
+      $ref: '#/$defs/RepositoryConfig'
     title: Repositories
     type: object
 required:

@@ -8,16 +8,15 @@ class SettingBaseModel(BaseModel):
     model_config = ConfigDict(use_attribute_docstrings=True, extra="forbid")
 
 
-class DeployEnvironmentConfig(SettingBaseModel):
-    host: str | None = None
-    docker_deploy_dir: Path | None = None
+class RepositoryConfig(SettingBaseModel):
+    deploy_script: Path | None = None
     static_dir: Path | None = None
 
 
 class Settings(SettingBaseModel):
     schema_: str | None = Field(None, alias="$schema")
     webhook_secret: str
-    repositories: dict[str, dict[str, DeployEnvironmentConfig]]
+    repositories: dict[str, RepositoryConfig]
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Settings":
