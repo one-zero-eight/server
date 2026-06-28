@@ -17,7 +17,12 @@ from config import settings
 from config_schema import RepositoryConfig
 
 
-app = FastAPI()
+app = FastAPI(
+    servers=[
+        {"url": settings.app_root_path, "description": "Current"},
+    ],
+    root_path=settings.app_root_path,
+)
 logger = logging.getLogger(__name__)
 DEPLOY_LOCK = threading.Lock()
 IMAGE_ID_PATTERN = re.compile(r"^sha256:[0-9a-fA-F]+$")

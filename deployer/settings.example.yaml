@@ -1,6 +1,7 @@
 $schema: ./settings.schema.yaml
 
 webhook_secret: change-me
+app_root_path: ""
 
 repositories:
   one-zero-eight/monorepo:

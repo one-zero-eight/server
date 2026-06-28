@@ -55,6 +55,7 @@ cp settings.example.yaml settings.yaml
 
 ```yaml
 webhook_secret: <random-secret>
+app_root_path: ""   # e.g. /deployer when served behind a path prefix
 
 repositories:
   one-zero-eight/monorepo:

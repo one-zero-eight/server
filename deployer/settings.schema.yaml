@@ -30,6 +30,10 @@ properties:
   webhook_secret:
     title: Webhook Secret
     type: string
+  app_root_path:
+    default: ''
+    title: App Root Path
+    type: string
   repositories:
     additionalProperties:
       $ref: '#/$defs/RepositoryConfig'

@@ -16,6 +16,7 @@ class RepositoryConfig(SettingBaseModel):
 class Settings(SettingBaseModel):
     schema_: str | None = Field(None, alias="$schema")
     webhook_secret: str
+    app_root_path: str = ""
     repositories: dict[str, RepositoryConfig]
 
     @classmethod
