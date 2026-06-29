@@ -2,7 +2,7 @@
 #
 # Copy to .github/workflows/build-and-deploy.yaml in your application repo and adjust:
 #   - file: ./api.Dockerfile          (path to your Dockerfile)
-#   - org secrets:
+#   - deployer secrets (repo or org):
 #       DEPLOYER_STAGING_URL
 #       DEPLOYER_STAGING_WEBHOOK_SECRET
 #       DEPLOYER_PRODUCTION_URL
@@ -10,6 +10,7 @@
 #   - repository key                   (must match deployer settings.yaml repositories map)
 #   - service options                  (must match docker-compose service names)
 #
+# Deploy calls the deployer API over HTTPS — any GitHub-hosted or self-hosted runner works.
 
 name: Build and deploy
 
@@ -94,7 +95,7 @@ jobs:
     needs: build-and-push-image
     if: github.repository_owner == 'one-zero-eight'
     name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
-    runs-on: [self-hosted, innohassle]
+    runs-on: ubuntu-latest
     permissions: {}
     environment:
       name: ${{ github.event.inputs.environment || 'staging' }}
@@ -120,6 +121,7 @@ jobs:
             --arg service "$SERVICE" \
             '{image_id: $image_id, ref: $ref, services: (if $service == "" or $service == "all" then [] else [$service] end)}' |
           curl -fNS \
+            --connect-timeout 10 \
             -H "Authorization: Bearer ${WEBHOOK_SECRET}" \
             -H "Content-Type: application/json" \
             -X POST \

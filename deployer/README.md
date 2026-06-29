@@ -74,7 +74,7 @@ Repository keys must match `github.repository` in workflows exactly.
 ```bash
 uv sync
 cp settings.example.yaml settings.yaml
-uv run uvicorn deploy:app --host 127.0.0.1 --port 9999
+uv run uvicorn deploy:app --host 0.0.0.0 --port 9999 --forwarded-allow-ips='*' --timeout-keep-alive 3600
 ```
 
 ```bash
@@ -145,7 +145,7 @@ Group=deployer
 WorkingDirectory=/srv/innohassle/deployer/deployer
 Environment=HOME=/srv/innohassle/deployer/deployer
 ExecStartPre=/usr/local/bin/uv sync --frozen
-ExecStart=/usr/local/bin/uv run uvicorn deploy:app --host 127.0.0.1 --port 9999
+ExecStart=/usr/local/bin/uv run uvicorn deploy:app --host 0.0.0.0 --port 9999 --forwarded-allow-ips='*' --timeout-keep-alive 3600
 Restart=on-failure
 RestartSec=5
 
