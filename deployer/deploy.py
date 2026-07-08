@@ -161,8 +161,9 @@ def deploy_static_stream(
             if tmp_symlink.exists() or tmp_symlink.is_symlink():
                 tmp_symlink.unlink()
 
-            yield f"Switching symlink: {target_symlink} -> {new_target_dir}\n"
-            os.symlink(str(new_target_dir), str(tmp_symlink))
+            link_target = os.path.relpath(new_target_dir, target_symlink.parent)
+            yield f"Switching symlink: {target_symlink} -> {link_target}\n"
+            os.symlink(link_target, str(tmp_symlink))
             os.replace(str(tmp_symlink), str(target_symlink))
             yield "Static deploy completed successfully\n"
         except tarfile.TarError as exc:
