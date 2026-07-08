@@ -66,10 +66,28 @@ def _is_member_path_safe(member_name: str) -> bool:
     return not member_path.is_absolute() and ".." not in member_path.parts
 
 
-def _get_repository_config(repository: str) -> RepositoryConfig:
-    repository_config = settings.repositories.get(repository)
-    if not repository_config:
+def _get_repository_config(repository: str, environment: str | None = None) -> RepositoryConfig:
+    repository_entry = settings.repositories.get(repository)
+    if repository_entry is None:
         raise HTTPException(status_code=404, detail=f"Repository config not found: {repository}")
+
+    if isinstance(repository_entry, RepositoryConfig):
+        return repository_entry
+
+    if environment is None:
+        environments = ", ".join(sorted(repository_entry))
+        raise HTTPException(
+            status_code=400,
+            detail=f"environment is required for {repository} (available: {environments})",
+        )
+
+    repository_config = repository_entry.get(environment)
+    if repository_config is None:
+        environments = ", ".join(sorted(repository_entry))
+        raise HTTPException(
+            status_code=404,
+            detail=f"Environment config not found: {environment} for {repository} (available: {environments})",
+        )
 
     return repository_config
 
@@ -180,6 +198,7 @@ def _extract_archive_safely(archive: UploadFile, destination: Path) -> None:
 @app.post("/deploy")
 def deploy(
     repository: str = Query(...),
+    environment: str | None = Query(default=None),
     image_id: str = Body(...),
     ref: str = Body(...),
     services: list[str] = Body(default=[]),
@@ -188,13 +207,14 @@ def deploy(
     _validate_image_id(image_id)
     _validate_services(services)
     logger.info(
-        "Deploy request: repository=%s ref=%s services=%s",
+        "Deploy request: repository=%s environment=%s ref=%s services=%s",
         repository,
+        environment,
         ref,
         services,
     )
 
-    repository_config = _get_repository_config(repository)
+    repository_config = _get_repository_config(repository, environment)
     if repository_config.deploy_script is None:
         raise HTTPException(
             status_code=400,
@@ -218,13 +238,14 @@ def deploy(
 @app.post("/deploy-static")
 def deploy_static(
     repository: str = Query(...),
+    environment: str | None = Query(default=None),
     ref: str = Form(...),
     archive: UploadFile = File(...),
     _: None = Depends(validate_webhook_secret),
 ) -> StreamingResponse:
-    logger.info("Deploy static request: repository=%s ref=%s", repository, ref)
+    logger.info("Deploy static request: repository=%s environment=%s ref=%s", repository, environment, ref)
 
-    repository_config = _get_repository_config(repository)
+    repository_config = _get_repository_config(repository, environment)
     if repository_config.static_dir is None:
         raise HTTPException(
             status_code=400,

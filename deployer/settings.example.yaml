@@ -8,4 +8,7 @@ repositories:
     deploy_script: /srv/innohassle/monorepo/deploy.sh
 
   one-zero-eight/website:
-    static_dir: /var/www/website
+    pre:
+      static_dir: /var/www/website-pre
+    production:
+      static_dir: /var/www/website-production

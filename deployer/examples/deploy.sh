@@ -37,9 +37,18 @@ if [ -n "$IMAGE_ID" ]; then
     echo "DOCKER_TAG_API=main@$IMAGE_ID" > "$ENV_FILE"
 fi
 
-COMPOSE_CMD=(docker compose up --build --pull always --force-recreate --detach)
+start=$(date +%s)
 if [ "${#SERVICES[@]}" -gt 0 ]; then
-    "${COMPOSE_CMD[@]}" "${SERVICES[@]}"
+    docker compose pull --quiet "${SERVICES[@]}"
 else
-    "${COMPOSE_CMD[@]}"
+    docker compose pull --quiet
 fi
+echo "pull finished in $(( $(date +%s) - start ))s"
+
+start=$(date +%s)
+if [ "${#SERVICES[@]}" -gt 0 ]; then
+    docker compose up --force-recreate --wait --wait-timeout 180 "${SERVICES[@]}"
+else
+    docker compose up --force-recreate --wait --wait-timeout 180
+fi
+echo "up finished in $(( $(date +%s) - start ))s"

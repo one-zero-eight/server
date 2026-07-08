@@ -36,7 +36,15 @@ properties:
     type: string
   repositories:
     additionalProperties:
-      $ref: '#/$defs/RepositoryConfig'
+      anyOf:
+      - $ref: '#/$defs/RepositoryConfig'
+      - additionalProperties:
+          $ref: '#/$defs/RepositoryConfig'
+        type: object
+    description: A dictionary of repositories to deploy. The key is the repository
+      name, and the value is a RepositoryConfig object. The RepositoryConfig object
+      can be a single object, or a dictionary with the keys to be environment names
+      (f.e. staging, pre, production).
     title: Repositories
     type: object
 required:

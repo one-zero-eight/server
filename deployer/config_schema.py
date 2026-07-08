@@ -17,7 +17,8 @@ class Settings(SettingBaseModel):
     schema_: str | None = Field(None, alias="$schema")
     webhook_secret: str
     app_root_path: str = ""
-    repositories: dict[str, RepositoryConfig]
+    repositories: dict[str, RepositoryConfig | dict[str, RepositoryConfig]]
+    "A dictionary of repositories to deploy. The key is the repository name, and the value is a RepositoryConfig object. The RepositoryConfig object can be a single object, or a dictionary with the keys to be environment names (f.e. staging, pre, production)."
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Settings":
