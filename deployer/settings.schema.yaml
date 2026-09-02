@@ -34,6 +34,16 @@ properties:
     default: ''
     title: App Root Path
     type: string
+  deploy_timeout_seconds:
+    default: 1800
+    exclusiveMinimum: 0
+    title: Deploy Timeout Seconds
+    type: integer
+  heartbeat_interval_seconds:
+    default: 15
+    exclusiveMinimum: 0
+    title: Heartbeat Interval Seconds
+    type: integer
   repositories:
     additionalProperties:
       anyOf:

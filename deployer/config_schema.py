@@ -17,11 +17,13 @@ class Settings(SettingBaseModel):
     schema_: str | None = Field(None, alias="$schema")
     webhook_secret: str
     app_root_path: str = ""
+    deploy_timeout_seconds: int = Field(default=1800, gt=0)
+    heartbeat_interval_seconds: int = Field(default=15, gt=0)
     repositories: dict[str, RepositoryConfig | dict[str, RepositoryConfig]]
     "A dictionary of repositories to deploy. The key is the repository name, and the value is a RepositoryConfig object. The RepositoryConfig object can be a single object, or a dictionary with the keys to be environment names (f.e. staging, pre, production)."
 
     @classmethod
-    def from_yaml(cls, path: Path) -> "Settings":
+    def from_yaml(cls, path: Path) -> Settings:
         with path.open("r", encoding="utf-8") as file:
             data = yaml.safe_load(file) or {}
         return cls.model_validate(data)
@@ -29,5 +31,8 @@ class Settings(SettingBaseModel):
     @classmethod
     def save_schema(cls, path: Path) -> None:
         with path.open("w", encoding="utf-8") as file:
-            schema = {"$schema": "https://json-schema.org/draft-07/schema", **cls.model_json_schema()}
+            schema = {
+                "$schema": "https://json-schema.org/draft-07/schema",
+                **cls.model_json_schema(),
+            }
             yaml.dump(schema, file, sort_keys=False)

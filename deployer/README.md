@@ -56,6 +56,8 @@ cp settings.example.yaml settings.yaml
 ```yaml
 webhook_secret: <random-secret>
 app_root_path: ""   # e.g. /deployer when served behind a path prefix
+deploy_timeout_seconds: 1800
+heartbeat_interval_seconds: 15
 
 repositories:
   one-zero-eight/monorepo:

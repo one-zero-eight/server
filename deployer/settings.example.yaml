@@ -2,6 +2,8 @@ $schema: ./settings.schema.yaml
 
 webhook_secret: change-me
 app_root_path: ""
+deploy_timeout_seconds: 1800
+heartbeat_interval_seconds: 15
 
 repositories:
   one-zero-eight/monorepo:
