@@ -2,19 +2,21 @@ import hmac
 import logging
 import os
 import re
-import shutil
 import signal
+import shutil
 import subprocess
 import tarfile
 import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from pathlib import Path, PurePath
 from queue import Empty, Queue
 
+from anyio import CancelScope, to_thread
 from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from starlette.types import Receive, Scope, Send
 
 from config import settings
 from config_schema import RepositoryConfig
@@ -31,6 +33,36 @@ DEPLOY_LOCKS_GUARD = threading.Lock()
 IMAGE_ID_PATTERN = re.compile(r"^sha256:[0-9a-fA-F]+$")
 SERVICE_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.-]*$")
 auth_scheme = HTTPBearer(auto_error=False)
+
+
+class DeploymentResponse(StreamingResponse):
+    def __init__(
+        self, stream: Generator[str], *, archive: UploadFile | None = None
+    ) -> None:
+        super().__init__(
+            stream,
+            media_type="text/plain; charset=utf-8",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+        self.stream = stream
+        self.archive = archive
+
+    def _close(self) -> None:
+        try:
+            self.stream.close()
+        finally:
+            # A disconnect while waiting for the lock never enters upload cleanup.
+            if self.archive is not None:
+                self.archive.file.close()
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            # Starlette's threadpool iterator does not close the underlying generator.
+            # Wait for streaming to stop before closing it, even under cancellation.
+            with CancelScope(shield=True):
+                await to_thread.run_sync(self._close)
 
 
 def validate_webhook_secret(
@@ -73,8 +105,20 @@ def _deploy_lock(repository: str) -> threading.Lock:
         return DEPLOY_LOCKS.setdefault(repository, threading.Lock())
 
 
-def _acquire_deploy_lock(lock: threading.Lock, repository: str) -> Iterator[str]:
-    while not lock.acquire(timeout=settings.heartbeat_interval_seconds):
+def _acquire_deploy_lock(
+    lock: threading.Lock, repository: str
+) -> Generator[str, None, bool]:
+    deadline = time.monotonic() + settings.deploy_timeout_seconds
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            yield (
+                f"\nDeployment timed out after {settings.deploy_timeout_seconds} seconds "
+                f"waiting for another {repository} deployment to finish\n"
+            )
+            return False
+        if lock.acquire(timeout=min(settings.heartbeat_interval_seconds, remaining)):
+            return True
         yield f"Waiting for another {repository} deployment to finish...\n"
 
 
@@ -168,10 +212,11 @@ def deploy_stream(
     image_id: str,
     ref: str,
     services: list[str],
-) -> Iterator[str]:
+) -> Generator[str]:
     work_dir = deploy_script.parent
     lock = _deploy_lock(repository)
-    yield from _acquire_deploy_lock(lock, repository)
+    if not (yield from _acquire_deploy_lock(lock, repository)):
+        return
     try:
         process: subprocess.Popen[str] | None = None
         logger.info(
@@ -220,9 +265,11 @@ def deploy_static_stream(
     target_symlink: Path,
     new_target_dir: Path,
     ref: str,
-) -> Iterator[str]:
+) -> Generator[str]:
     lock = _deploy_lock(repository)
-    yield from _acquire_deploy_lock(lock, repository)
+    if not (yield from _acquire_deploy_lock(lock, repository)):
+        archive.file.close()
+        return
     try:
         logger.info(
             "Deploy static start: symlink=%s ref=%s target=%s",
@@ -333,13 +380,8 @@ def deploy(
             status_code=404, detail=f"Deploy script not found: {deploy_script}"
         )
 
-    return StreamingResponse(
-        deploy_stream(repository, deploy_script, image_id, ref, services),
-        media_type="text/plain; charset=utf-8",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
+    return DeploymentResponse(
+        deploy_stream(repository, deploy_script, image_id, ref, services)
     )
 
 
@@ -371,7 +413,7 @@ def deploy_static(
     safe_ref = _sanitize_ref(ref)
     new_target_dir = base_parent / f"{target_symlink.name}-{safe_ref}"
 
-    return StreamingResponse(
+    return DeploymentResponse(
         deploy_static_stream(
             repository=repository,
             archive=archive,
@@ -379,9 +421,5 @@ def deploy_static(
             new_target_dir=new_target_dir,
             ref=ref,
         ),
-        media_type="text/plain; charset=utf-8",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
+        archive=archive,
     )
