@@ -32,13 +32,18 @@ on:
         default: all
         options:
           - all
-          - maps
-          - clubs
-          - student-affairs
-          - when2meet
-          - guard
-          - forms
-          - room-booking
+          - maps-api
+          - board-games-api
+          - clubs-api
+          - events-api
+          - student-affairs-api
+          - when2meet-api
+          - guard-api
+          - forms-api
+          - room-booking-api
+          - schedule-api
+          - schedule-assistant-api
+          - tabletennis-api
   push:
     branches:
       - main
