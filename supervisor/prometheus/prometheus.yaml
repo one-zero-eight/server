@@ -25,22 +25,81 @@ scrape_configs:
   - job_name: 'node_exporter'
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'vm20:9100', 'vm21:9100', 'vm23:9100' ]
+      - targets: [ 'inh-staging:9100', 'inh-production:9100', 'inh-internal:9100' ]
 
   # Docker containers
   - job_name: 'cadvisor'
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'vm20:8080', 'vm21:8080', 'vm23:8080' ]
+      - targets: [ 'inh-staging:8080', 'inh-production:8080', 'inh-internal:8080' ]
 
   # Nginx server
   - job_name: 'nginx_exporter'
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'vm21:9113' ]
+      - targets: [ 'inh-production:9113' ]
 
   # Loki
   - job_name: 'loki'
     scrape_interval: 5s
     static_configs:
-      - targets: [ 'vm23:3100' ]
+      - targets: [ 'inh-internal:3100' ]
+
+  # InNoHassle monorepo staging APIs (vm20)
+  - job_name: 'monorepo-staging'
+    scrape_interval: 15s
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/monorepo_metrics_bearer.token
+    static_configs:
+      - targets: ['10.1.1.20:8000']
+        labels:
+          env: staging
+          stack: monorepo
+          service: schedule
+      - targets: ['10.1.1.20:8008']
+        labels:
+          env: staging
+          stack: monorepo
+          service: room-booking
+      - targets: ['10.1.1.20:8009']
+        labels:
+          env: staging
+          stack: monorepo
+          service: maps
+      - targets: ['10.1.1.20:8012']
+        labels:
+          env: staging
+          stack: monorepo
+          service: schedule-assistant
+      - targets: ['10.1.1.20:8013']
+        labels:
+          env: staging
+          stack: monorepo
+          service: guard
+      - targets: ['10.1.1.20:8014']
+        labels:
+          env: staging
+          stack: monorepo
+          service: clubs
+      - targets: ['10.1.1.20:8015']
+        labels:
+          env: staging
+          stack: monorepo
+          service: student-affairs
+      - targets: ['10.1.1.20:8017']
+        labels:
+          env: staging
+          stack: monorepo
+          service: forms
+      - targets: ['10.1.1.20:8020']
+        labels:
+          env: staging
+          stack: monorepo
+          service: when2meet
+      - targets: ['10.1.1.20:8023']
+        labels:
+          env: staging
+          stack: monorepo
+          service: tabletennis

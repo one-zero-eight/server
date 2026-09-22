@@ -6,7 +6,11 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: http://vm23:3100/loki/api/v1/push
+  - url: http://inh-internal:3100/loki/api/v1/push
+    batchwait: 1s
+    batchsize: 1048576  # 1MB
+    external_labels:
+      server: 'inh-internal'
 
 scrape_configs:
   - job_name: local
@@ -15,12 +19,58 @@ scrape_configs:
           - localhost
         labels:
           job: varlogs
+          project: system
           __path__: /var/log/*log
 
   - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+
+    relabel_configs:
+      # container name (strip leading slash)
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: container
+
+      # docker-compose service name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: compose_service
+
+      # docker-compose project name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        target_label: project
+
+      # image name
+      - source_labels: ['__meta_docker_container_image']
+        target_label: image
+
+      # map container ID → log file path
+      - source_labels: ['__meta_docker_container_id']
+        target_label: __path__
+        replacement: /var/lib/docker/containers/$1/$1-json.log
+
     pipeline_stages:
-      - docker: { }
-    static_configs:
+      # Parse Docker JSON log format
+      - docker: {}
+
+      # Try to parse Python exception traces
+      #- multiline:
+      #    firstline: '^\S+Error|^\S+Exception'
+      #    max_wait_time: 3s
+
+      # Try JSON parsing (no-op if log line isn't JSON)
+      - json:
+          expressions:
+            level: level
+            msg: message
+            trace_id: trace_id
+          drop_malformed: false
+
+      # Promote useful fields to labels (be careful!)
       - labels:
-          job: docker
-          __path__: /var/lib/docker/containers/*/*-json.log
+          level:
+
+      # Normalize log message field
+      - output:
+          source: msg

@@ -13,7 +13,10 @@ services:
       - "/etc/hosts:/etc/hosts:ro"
     command:
       - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
       - "--storage.tsdb.retention.size=4GB"
+      - "--web.enable-lifecycle"
 
   grafana:
     image: grafana/grafana:10.4.2

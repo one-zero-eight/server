@@ -1,3 +1,4 @@
 .env
 .env.local
 .idea
+supervisor/prometheus/*.token
